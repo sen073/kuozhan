@@ -1,5 +1,23 @@
 [
   {
+    "name": "Tachiyomi: Gugu5",
+    "pkg": "eu.kanade.tachiyomi.extension.zh.gugu5",
+    "apk": "tachiyomi-zh.gugu5-v1.4.1-debug.apk",
+    "lang": "zh",
+    "code": 1,
+    "version": "1.4.1",
+    "nsfw": 0,
+    "sources": [
+      {
+        "name": "古古漫画",
+        "lang": "zh",
+        "id": "6823712755632349824",
+        "baseUrl": "http://m.gugu5.com",
+        "versionId": 1
+      }
+    ]
+  },
+  {
     "name": "Tachiyomi: Manwaji",
     "pkg": "eu.kanade.tachiyomi.extension.zh.manwaji",
     "apk": "tachiyomi-zh.manwaji-v1.4.5-debug.apk",

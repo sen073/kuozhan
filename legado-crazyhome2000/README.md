@@ -42,3 +42,8 @@ https://raw.githubusercontent.com/sen073/kuozhan/main/legado-crazyhome2000/books
 - `满座仙魔尽裙臣`
 - `妖尘录`
 - `我真的没有撩妹`
+
+## 分类发现修复(v2)
+
+发现页改为：分类 HTML 入口 + JS 主动请求 REST。
+若仍为空：删除旧源后重新网络导入。

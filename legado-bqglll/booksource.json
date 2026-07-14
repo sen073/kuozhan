@@ -1,6 +1,6 @@
 [
   {
-    "bookSourceComment": "m.bqglll.cc 笔趣阁镜像书源\n搜索: /user/hm.html + /user/search.html\n目录/正文: apibi.cc + AES(token)\n密钥材料: MD5(\"book@token.html\") 前16=IV 后16=KEY\nAES/CBC/PKCS5Padding\n2026-07-14\n注意: 站点含大量低质/成人向内容，请自行甄别使用",
+    "bookSourceComment": "m.bqglll.cc 笔趣阁镜像 v3\n搜索修复要点:\n1) 禁止 headers 里写死 Cookie（会覆盖 hm/hmt）\n2) cookie.replaceCookie 只补 getsite\n3) bookList 内自行 hm + search，再拼 HTML 列表\n目录/正文: apibi.cc + AES(MD5(book@token.html))\n调试关键词: 剑来 / 凡人 / 斗破苍穹",
     "bookSourceGroup": "笔趣阁",
     "bookSourceName": "笔趣阁m.bqglll",
     "bookSourceType": 0,
@@ -12,12 +12,12 @@
     "enabledExplore": true,
     "exploreUrl": "[{\"title\":\"玄幻奇幻\",\"url\":\"/xuanhuan/{{page}}.html\",\"style\":{\"layout_flexGrow\":1}},{\"title\":\"武侠仙侠\",\"url\":\"/wuxia/{{page}}.html\",\"style\":{\"layout_flexGrow\":1}},{\"title\":\"都市言情\",\"url\":\"/dushi/{{page}}.html\",\"style\":{\"layout_flexGrow\":1}},{\"title\":\"历史军事\",\"url\":\"/lishi/{{page}}.html\",\"style\":{\"layout_flexGrow\":1}},{\"title\":\"网游竞技\",\"url\":\"/wangyou/{{page}}.html\",\"style\":{\"layout_flexGrow\":1}},{\"title\":\"科幻灵异\",\"url\":\"/kehuan/{{page}}.html\",\"style\":{\"layout_flexGrow\":1}},{\"title\":\"女生频道\",\"url\":\"/mm/{{page}}.html\",\"style\":{\"layout_flexGrow\":1}},{\"title\":\"完本小说\",\"url\":\"/finish/{{page}}.html\",\"style\":{\"layout_flexGrow\":1}}]",
     "header": "{\"User-Agent\":\"Mozilla/5.0 (Linux; Android 13; Pixel 7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Mobile Safari/537.36\",\"Accept-Language\":\"zh-CN,zh;q=0.9\",\"Referer\":\"https://m.bqglll.cc/\"}",
-    "lastUpdateTime": 1720944000000,
+    "lastUpdateTime": 1784020800000,
     "respondTime": 180000,
     "ruleBookInfo": {
       "author": "meta[property=\"og:novel:author\"]@content||class.dd_box.0@tag.span.0@text##作者：",
       "coverUrl": "meta[property=\"og:image\"]@content||class.cover@tag.img@src",
-      "init": "<js>\nfunction aesToken(obj){\n  var md5 = String(java.md5Encode('book@token.html'));\n  var iv = md5.substring(0,16);\n  var key = md5.substring(16,32);\n  return String(java.aesEncodeToBase64String(JSON.stringify(obj), key, 'AES/CBC/PKCS5Padding', iv));\n}\nvar html = result;\nvar m = html.match(/addBookCase\\('(\\d+)'\\)/) || html.match(/bookimg\\/\\d+\\/(\\d+)\\.jpg/);\nif(m){\n  var bid = m[1];\n  java.put('bid', bid);\n  book.variable = JSON.stringify({bid:bid});\n}\nresult = html;\n</js>",
+      "init": "<js>\nvar html = String(result);\nvar m = html.match(/addBookCase\\('(\\d+)'\\)/) || html.match(/bookimg\\/\\d+\\/(\\d+)\\.jpg/);\nif (m) {\n  java.put('bid', m[1]);\n  book.variable = JSON.stringify({bid: m[1]});\n}\nresult = html;\n</js>",
       "intro": "meta[property=\"og:description\"]@content||class.book_about@tag.dd@text##\\d+m\\d+-\\d+$",
       "kind": "meta[property=\"og:novel:category\"]@content||class.dd_box.0@tag.span.1@text##分类：",
       "lastChapter": "meta[property=\"og:novel:latest_chapter_name\"]@content||class.book_last@tag.dd.0@tag.a@text",
@@ -38,20 +38,20 @@
       "name": "tag.dt@tag.a@text"
     },
     "ruleSearch": {
-      "author": "$.author",
-      "bookList": "$.[*]",
-      "bookUrl": "$.url_list",
+      "author": "tag.span.author@text",
+      "bookList": "<js>\nfunction getQuery() {\n  // searchUrl 形态: /s?q=关键词\n  var q = '';\n  try {\n    var m = String(baseUrl).match(/(?:\\?|&)q=([^&]+)/);\n    if (m) q = decodeURIComponent(m[1].replace(/\\+/g, ' '));\n  } catch (e) {}\n  if (!q) {\n    try { q = String(key || ''); } catch (e2) {}\n  }\n  return q;\n}\nfunction ajaxJson(url) {\n  // 兼容 AnalyzeUrl 选项串，补齐 XHR 头\n  var u = url + ',{\"headers\":{\"X-Requested-With\":\"XMLHttpRequest\",\"Accept\":\"application/json,text/javascript,*/*;q=0.01\",\"Referer\":\"https://m.bqglll.cc/\"}}';\n  try { return String(java.ajax(u) || ''); } catch (e) {\n    try { return String(java.ajax(url) || ''); } catch (e2) { return ''; }\n  }\n}\nfunction ensureGetSite() {\n  // 只合并 getsite，绝不能 set 成整段 Cookie 覆盖 jar\n  try { cookie.replaceCookie('https://m.bqglll.cc', 'getsite=bqg301.cc'); }\n  catch (e1) {\n    try { cookie.setCookie('https://m.bqglll.cc', 'getsite=bqg301.cc'); } catch (e2) {}\n  }\n}\nfunction searchOnce(q) {\n  ensureGetSite();\n  try { java.ajax('https://m.bqglll.cc/'); } catch (e0) {}\n  ajaxJson('https://m.bqglll.cc/user/hm.html?q=' + encodeURIComponent(q));\n  return ajaxJson('https://m.bqglll.cc/user/search.html?q=' + encodeURIComponent(q));\n}\nvar q = getQuery();\nif (!q) {\n  java.log('search key empty, baseUrl=' + baseUrl);\n  result = '';\n} else {\n  var raw = searchOnce(q);\n  var arr = [];\n  try { arr = JSON.parse(raw); } catch (e) { arr = []; }\n  if (!arr || !arr.length) {\n    try { cookie.replaceCookie('https://m.bqglll.cc', 'getsite=bqg107.xyz'); } catch (e3) {}\n    raw = searchOnce(q);\n    try { arr = JSON.parse(raw); } catch (e4) { arr = []; }\n  }\n  if (!arr || !arr.length) {\n    try { cookie.replaceCookie('https://m.bqglll.cc', 'getsite=bqg961.xyz'); } catch (e5) {}\n    raw = searchOnce(q);\n    try { arr = JSON.parse(raw); } catch (e6) { arr = []; }\n  }\n  java.log('search q=' + q + ' count=' + (arr ? arr.length : 0) + ' raw=' + String(raw).slice(0, 120));\n  var html = '';\n  for (var i = 0; i < (arr ? arr.length : 0); i++) {\n    var b = arr[i] || {};\n    var href = b.url_list || '';\n    if (href && href.indexOf('http') !== 0) href = 'https://m.bqglll.cc' + href;\n    var name = b.articlename || '';\n    var author = b.author || '';\n    var cover = b.url_img || '';\n    var intro = (b.intro || '').replace(/</g, '&lt;');\n    html += '<div class=\"item\">'\n      + '<a class=\"name\" href=\"' + href + '\">' + name + '</a>'\n      + '<span class=\"author\">' + author + '</span>'\n      + '<img src=\"' + cover + '\"/>'\n      + '<p class=\"intro\">' + intro + '</p>'\n      + '</div>\\n';\n  }\n  result = html;\n}\n</js>@css:div.item",
+      "bookUrl": "tag.a.name@href",
       "checkKeyWord": "剑来",
-      "coverUrl": "$.url_img",
-      "intro": "$.intro",
-      "name": "$.articlename"
+      "coverUrl": "tag.img@src",
+      "intro": "tag.p.intro@text",
+      "name": "tag.a.name@text"
     },
     "ruleToc": {
-      "chapterList": "<js>\nfunction aesToken(obj){\n  var md5 = String(java.md5Encode('book@token.html'));\n  var iv = md5.substring(0,16);\n  var key = md5.substring(16,32);\n  return String(java.aesEncodeToBase64String(JSON.stringify(obj), key, 'AES/CBC/PKCS5Padding', iv));\n}\nfunction getBid(){\n  var bid = java.get('bid');\n  if(bid) return String(bid);\n  if(book.variable){\n    try{ bid = JSON.parse(String(book.variable)).bid; if(bid) return String(bid);}catch(e){}\n  }\n  var html = java.ajax(book.bookUrl);\n  var m = String(html).match(/addBookCase\\('(\\d+)'\\)/) || String(html).match(/bookimg\\/\\d+\\/(\\d+)\\.jpg/);\n  if(m){\n    java.put('bid', m[1]);\n    book.variable = JSON.stringify({bid:m[1]});\n    return m[1];\n  }\n  throw '未解析到书籍ID(bid)';\n}\nvar bid = getBid();\nvar api = 'https://apibi.cc/api/booklist?token=' + encodeURIComponent(aesToken({id:String(bid)}));\nvar data = JSON.parse(java.ajax(api));\nvar list = data.list || [];\nvar html = '';\nfor(var i=0;i<list.length;i++){\n  var chapApi = 'https://apibi.cc/api/chapter?token=' + encodeURIComponent(aesToken({id:Number(bid), chapterid:i+1}));\n  html += '<a href=\"' + chapApi + '\">' + list[i] + '</a>\\n';\n}\nresult = html;\n</js>@css:a",
+      "chapterList": "<js>\nfunction aesToken(obj){\n  var md5 = String(java.md5Encode('book@token.html'));\n  var iv = md5.substring(0,16);\n  var key = md5.substring(16,32);\n  return String(java.aesEncodeToBase64String(JSON.stringify(obj), key, 'AES/CBC/PKCS5Padding', iv));\n}\nfunction getBid(){\n  var bid = java.get('bid');\n  if (bid) return String(bid);\n  if (book.variable) {\n    try {\n      bid = JSON.parse(String(book.variable)).bid;\n      if (bid) return String(bid);\n    } catch (e) {}\n  }\n  var html = String(java.ajax(book.bookUrl) || '');\n  var m = html.match(/addBookCase\\('(\\d+)'\\)/) || html.match(/bookimg\\/\\d+\\/(\\d+)\\.jpg/);\n  if (m) {\n    java.put('bid', m[1]);\n    book.variable = JSON.stringify({bid: m[1]});\n    return m[1];\n  }\n  throw '未解析到书籍ID(bid)';\n}\nvar bid = getBid();\nvar api = 'https://apibi.cc/api/booklist?token=' + encodeURIComponent(aesToken({id: String(bid)}));\nvar data = JSON.parse(String(java.ajax(api) || '{}'));\nvar list = data.list || [];\nvar html = '';\nfor (var i = 0; i < list.length; i++) {\n  var chapApi = 'https://apibi.cc/api/chapter?token=' + encodeURIComponent(aesToken({id: Number(bid), chapterid: i + 1}));\n  html += '<a href=\"' + chapApi + '\">' + list[i] + '</a>\\n';\n}\njava.log('toc bid=' + bid + ' chapters=' + list.length);\nresult = html;\n</js>@css:a",
       "chapterName": "text",
       "chapterUrl": "href"
     },
-    "searchUrl": "{{(function(){\n  try{ java.ajax('https://m.bqglll.cc/user/hm.html?q=' + encodeURIComponent(key)); }catch(e){}\n  return 'https://m.bqglll.cc/user/search.html?q=' + encodeURIComponent(key);\n})()}},{\n  \"headers\": {\n    \"User-Agent\": \"Mozilla/5.0 (Linux; Android 13; Pixel 7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Mobile Safari/537.36\",\n    \"Referer\": \"https://m.bqglll.cc/\",\n    \"Accept\": \"application/json, text/javascript, */*; q=0.01\",\n    \"X-Requested-With\": \"XMLHttpRequest\",\n    \"Cookie\": \"getsite=bqg107.xyz\"\n  }\n}",
+    "searchUrl": "https://m.bqglll.cc/s?q={{key}}",
     "weight": 0
   }
 ]
